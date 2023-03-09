@@ -21,6 +21,7 @@ export class App extends Component {
     showModal: false,
     largeImageURL: '',
     tags: '',
+    totalHits: 0,
   };
 
   componentDidUpdate(_, prevState) {
@@ -36,12 +37,11 @@ export class App extends Component {
 
     try {
       this.setState({ isLoader: true, message: false });
-      const {
-        data: { hits },
-      } = await getPost(searchRequest, page);
-      hits.length
+      const { data } = await getPost(searchRequest, page);
+      data.hits.length
         ? this.setState(prevState => ({
-            items: [...prevState.items, ...hits],
+            items: [...prevState.items, ...data.hits],
+            totalHits: data.totalHits,
           }))
         : this.setState({ items: [], message: true });
     } catch ({ response: { data } }) {
@@ -96,8 +96,16 @@ export class App extends Component {
   };
 
   render() {
-    const { items, isLoader, error, message, showModal, largeImageURL, tags } =
-      this.state;
+    const {
+      items,
+      isLoader,
+      error,
+      message,
+      showModal,
+      largeImageURL,
+      tags,
+      totalHits,
+    } = this.state;
     return (
       <div className="App">
         {showModal && (
@@ -118,7 +126,9 @@ export class App extends Component {
             wrapperClass="Loader"
           />
         )}
-        {Boolean(items.length) && <Button loadMore={this.loadMore} />}
+        {Boolean(items.length) && items.length !== totalHits && (
+          <Button loadMore={this.loadMore} />
+        )}
       </div>
     );
   }
